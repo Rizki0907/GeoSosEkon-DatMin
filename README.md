@@ -1,14 +1,14 @@
-# 🌍 GeoSosEkon: Multimodal Spatial-Temporal Poverty Analytics
+# GeoSosEkon: Multimodal Spatial-Temporal Poverty Analytics
 
-**GeoSosEkon** adalah sebuah sistem analitik spasial-temporal terintegrasi multimodal yang dirancang untuk memodelkan dan memproyeksikan dinamika tingkat kemiskinan tingkat provinsi di Indonesia (2021 - 2026). 
+**GeoSosEkon** is a multimodal integrated spatial-temporal analytics system designed to model and project provincial poverty dynamics in Indonesia (2021 - 2026).
 
-Sistem ini dikembangkan sebagai **Proyek Akhir Mata Kuliah Data Mining** dengan menggabungkan data sosio-ekonomi kuantitatif dari Badan Pusat Statistik (BPS) dengan data kualitatif sentimen publik (Twitter) menggunakan lima modul analitik yang komprehensif.
+This system was developed as a **Data Mining Final Project**, combining quantitative socioeconomic data from Statistics Indonesia (BPS) with qualitative public sentiment data (Twitter) using five comprehensive analytical modules.
 
 ---
 
-## 👥 Tim Pengembang
+## Development Team
 
-Proyek ini dikembangkan secara kolaboratif oleh:
+This project was developed collaboratively by:
 
 1. **Rizki Piji Fathoni** (24031554029)
 2. **Muhammad Rafi Fahrezi** (24031554100)
@@ -16,51 +16,51 @@ Proyek ini dikembangkan secara kolaboratif oleh:
 
 ---
 
-## 🏗️ Arsitektur Sistem (5 Layer Analitik)
+## System Architecture (5 Analytical Layers)
 
-Proyek ini dibagi ke dalam 5 lapisan (*layer*) analisis independen yang saling melengkapi:
+The project is divided into 5 independent but complementary analytical layers:
 
-### 1. Tipologi Provinsi (Clustering) - *In Progress*
-- Melakukan reduksi dimensi membandingkan **PCA vs UMAP**.
-- Pengelompokan data provinsi menggunakan **Gaussian Mixture Model (GMM)** untuk membentuk tipologi sosio-ekonomi wilayah.
+### 1. Provincial Typology (Clustering) - *In Progress*
+- Performing dimensionality reduction comparing **PCA vs UMAP**.
+- Clustering provincial data using **Gaussian Mixture Model (GMM)** to form socioeconomic typologies.
 
-### 2. Proyeksi Kemiskinan (Forecasting) & SHAP
-- Menggunakan pendekatan **Ensemble Machine Learning (Random Forest + XGBoost + LightGBM)** dengan optimasi pembobotan Inverse-RMSE.
-- Melakukan proyeksi (*forecasting*) tingkat kemiskinan untuk tahun **2025 dan 2026** berdasarkan data panel *recursive autoregressive*.
-- Menerapkan **SHAP (SHapley Additive exPlanations)** untuk atribusi fitur global guna memahami indikator apa yang paling krusial mendrive prediksi model.
+### 2. Poverty Projections (Forecasting) & SHAP
+- Utilizing an **Ensemble Machine Learning** approach (Random Forest + XGBoost + LightGBM) optimized with Inverse-RMSE weighting.
+- Projecting poverty rates for the years **2025 and 2026** based on recursive autoregressive panel data.
+- Applying **SHAP (SHapley Additive exPlanations)** for global feature attribution to understand which indicators predominantly drive the model predictions.
 
-### 3. Autokorelasi Spasial (Spatial Analysis)
-- Menganalisis ketergantungan wilayah menggunakan **Moran's I** (Global) dan **LISA** (Local Indicators of Spatial Association).
-- Mengidentifikasi pemetaan daerah *Hotspot* (Tinggi-Tinggi) dan *Coldspot* (Rendah-Rendah) kemiskinan di Indonesia.
+### 3. Spatial Autocorrelation (Spatial Analysis)
+- Analyzing regional dependencies using **Moran's I** (Global) and **LISA** (Local Indicators of Spatial Association).
+- Identifying poverty **Hotspots** (High-High) and **Coldspots** (Low-Low) across Indonesia.
 
-### 4. Inferensi Kausal (Panel Regression)
-- Menjalankan model ekonometrika **Two-Way Fixed Effect Panel Regression** (mengontrol efek spesifik individu provinsi dan waktu).
-- Tujuannya adalah untuk menarik kesimpulan *causal inference* antara indikator pembangunan manusia (IPM, TPT, TPAK, dll) terhadap tingkat kemiskinan aktual.
+### 4. Causal Inference (Panel Regression)
+- Running an econometric **Two-Way Fixed Effect Panel Regression** model (controlling for province and time-specific fixed effects).
+- Drawing causal inference between human development indicators (HDI, Unemployment Rate, Labor Force Participation Rate, etc.) and actual poverty rates.
 
-### 5. Analisis Sentimen Publik (Twitter IndoRoBERTa)
-- Menganalisis opini masyarakat di Twitter mengenai isu sosial dan ekonomi.
-- Menggunakan pre-trained model **IndoRoBERTa Transformer** untuk mengklasifikasi teks.
-- Menghitung korelasi agregat sentimen negatif/positif per tahun dengan persentase tingkat kemiskinan rill.
+### 5. Public Sentiment Analysis (Twitter IndoRoBERTa)
+- Analyzing public opinion on Twitter regarding social and economic issues.
+- Utilizing a pre-trained **IndoRoBERTa Transformer** model for text classification.
+- Calculating the correlation between aggregate yearly negative/positive sentiment and actual poverty percentage.
 
 ---
 
-## 💻 Dashboard Interaktif
+## Interactive Dashboard
 
-Proyek ini dilengkapi dengan **Dashboard Streamlit** (berada di dalam folder `dashboard/`) yang berfungsi sebagai *Business Intelligence Tool*. 
+This project is equipped with an interactive **Streamlit Dashboard** (located in the `dashboard/` folder) acting as the primary Business Intelligence Tool.
 
-Melalui dashboard ini, Anda dapat:
-- Melihat ringkasan dan statistik kemiskinan terbaru.
-- Melakukan **What-If Analysis** secara *real-time* untuk memprediksi tingkat kemiskinan jika suatu indikator diubah (menggunakan *joblib loaded ML models*).
-- Mengeksplorasi peta LISA, hasil regresi, dan grafik atribusi SHAP.
+Through this dashboard, you can:
+- View the latest poverty summaries and statistics.
+- Perform real-time **What-If Analysis** to predict poverty rates if an indicator is altered (using dynamically loaded joblib ML models).
+- Explore LISA maps, regression outputs, and SHAP attribution charts.
 
-### Cara Menjalankan Dashboard:
-1. *Clone* repository ini ke lokal mesin Anda.
-2. Buka terminal di dalam folder proyek.
-3. Jalankan perintah berikut:
+### How to Run the Dashboard:
+1. Clone this repository to your local machine.
+2. Open a terminal inside the project directory.
+3. Run the following command:
    ```bash
    streamlit run dashboard/app.py
    ```
-4. Dashboard akan terbuka di browser Anda (standar di `localhost:8501`).
+4. The dashboard will automatically open in your browser (defaulting to `localhost:8501`).
 
 ---
-*© 2026 GeoSosEkon Project*
+*Copyright 2026 GeoSosEkon Project*
