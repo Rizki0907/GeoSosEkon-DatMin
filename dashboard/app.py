@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 
-# --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="GeoSosEkon Dashboard",
     page_icon="🌍",
@@ -10,38 +9,37 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- LOAD CSS ---
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 def load_css(file_name):
-    with open(file_name) as f:
-        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    try:
+        with open(BASE_DIR / "dashboard" / file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        pass
 
-try:
-    load_css('style.css')
-except FileNotFoundError:
-    pass
+load_css('style.css')
 
-# --- CONSTANTS ---
-DATA_PATH = Path("../data_bps_datmin.csv")
+DATA_PATH = BASE_DIR / "data_bps_datmin.csv"
 
-# --- LOAD DATA ---
 @st.cache_data
 def load_data():
     try:
         df_raw = pd.read_csv(DATA_PATH)
         df_raw.columns = [
-            'provinsi', 'tahun', 'aps_1315', 'aps_1618', 'aps_1924',
-            'tpt_feb', 'tpt_agu', 'tpak_feb', 'tpak_agu',
-            'gk_maret', 'gk_sept',
-            'jpm_maret', 'jpm_sept',
-            'ppm_maret', 'ppm_sept',
-            'ipm', 'rls', 'hls'
+            'province', 'year', 'aps_1315', 'aps_1618', 'aps_1924',
+            'tpt_feb', 'tpt_aug', 'tpak_feb', 'tpak_aug',
+            'gk_march', 'gk_sept',
+            'jpm_march', 'jpm_sept',
+            'ppm_march', 'ppm_sept',
+            'hdi', 'mean_years_schooling', 'expected_years_schooling'
         ]
         df = df_raw.copy()
-        df['y_kemiskinan'] = (df['ppm_maret'] + df['ppm_sept']) / 2
-        df['tpt'] = (df['tpt_feb'] + df['tpt_agu']) / 2
-        df['tpak'] = (df['tpak_feb'] + df['tpak_agu']) / 2
-        df['gk'] = (df['gk_maret'] + df['gk_sept']) / 2
-        df['provinsi'] = df['provinsi'].str.strip().str.upper()
+        df['poverty_rate'] = (df['ppm_march'] + df['ppm_sept']) / 2
+        df['tpt'] = (df['tpt_feb'] + df['tpt_aug']) / 2
+        df['tpak'] = (df['tpak_feb'] + df['tpak_aug']) / 2
+        df['poverty_line'] = (df['gk_march'] + df['gk_sept']) / 2
+        df['province'] = df['province'].str.strip().str.upper()
         return df
     except Exception as e:
         st.error(f"Error loading data: {e}")
@@ -49,42 +47,41 @@ def load_data():
 
 df = load_data()
 
-# --- MAIN CONTENT ---
 st.markdown("<h1 style='text-align: center; color: #2c3e50;'>🌍 GeoSosEkon Dashboard</h1>", unsafe_allow_html=True)
-st.markdown("<h3 style='text-align: center; color: #7f8c8d;'>Sistem Analitik Spasial-Temporal Dinamika Kemiskinan Provinsi di Indonesia</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: #7f8c8d;'>Multimodal Spatial-Temporal Analytics System for Provincial Poverty Dynamics in Indonesia</h3>", unsafe_allow_html=True)
 st.markdown("---")
 
 st.markdown("""
 <div class="glass-container">
-    <h3>Selamat Datang!</h3>
-    <p>Dashboard ini merupakan antarmuka interaktif dari proyek <b>GeoSosEkon</b>. Sistem ini menggabungkan data sosioekonomi kuantitatif dari BPS dengan data sentimen publik kualitatif dari Twitter, menjalankan lima modul analitik independen.</p>
-    <p>Silakan navigasikan menu di sidebar sebelah kiri untuk mengeksplorasi masing-masing lapisan analitik:</p>
+    <h3>Welcome!</h3>
+    <p>This dashboard is the interactive interface of the <b>GeoSosEkon</b> project. The system integrates quantitative socioeconomic data from BPS with qualitative public sentiment data from Twitter, running five independent analytical modules.</p>
+    <p>Please navigate through the sidebar menu to explore each analytical layer:</p>
     <ul>
-        <li><b>Tipologi Provinsi (Clustering)</b> - Segera Hadir</li>
-        <li><b>Peta Hotspot Kemiskinan (Spatial)</b></li>
-        <li><b>Proyeksi & Prediksi 2025-2026 (Forecasting)</b></li>
-        <li><b>Kausalitas & Atribusi (Panel Regression & SHAP)</b></li>
-        <li><b>Sentimen Publik (RoBERTa Sentiment)</b></li>
+        <li><b>Provincial Typology (Clustering)</b> - Coming Soon</li>
+        <li><b>Poverty Hotspot Map (Spatial)</b></li>
+        <li><b>Projections & Predictions 2025-2026 (Forecasting)</b></li>
+        <li><b>Causality & Attribution (Panel Regression & SHAP)</b></li>
+        <li><b>Public Sentiment (RoBERTa Sentiment)</b></li>
     </ul>
 </div>
 """, unsafe_allow_html=True)
 
 if df is not None:
-    st.markdown("### 📊 Snapshot Kemiskinan Nasional (Tahun Terakhir)")
+    st.markdown("### 📊 National Poverty Snapshot (Latest Year)")
     
-    latest_year = df['tahun'].max()
-    df_latest = df[df['tahun'] == latest_year]
+    latest_year = df['year'].max()
+    df_latest = df[df['year'] == latest_year]
     
-    avg_poverty = df_latest['y_kemiskinan'].mean()
-    highest_prov = df_latest.loc[df_latest['y_kemiskinan'].idxmax()]
-    lowest_prov = df_latest.loc[df_latest['y_kemiskinan'].idxmin()]
+    avg_poverty = df_latest['poverty_rate'].mean()
+    highest_prov = df_latest.loc[df_latest['poverty_rate'].idxmax()]
+    lowest_prov = df_latest.loc[df_latest['poverty_rate'].idxmin()]
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown(f"""
         <div class="metric-card">
-            <div class="metric-label">Rata-rata Nasional ({latest_year})</div>
+            <div class="metric-label">National Average ({latest_year})</div>
             <div class="metric-value">{avg_poverty:.2f}%</div>
         </div>
         """, unsafe_allow_html=True)
@@ -92,16 +89,16 @@ if df is not None:
     with col2:
         st.markdown(f"""
         <div class="metric-card" style="border-top-color: #e74c3c;">
-            <div class="metric-label">Tertinggi ({highest_prov['provinsi']})</div>
-            <div class="metric-value">{highest_prov['y_kemiskinan']:.2f}%</div>
+            <div class="metric-label">Highest ({highest_prov['province']})</div>
+            <div class="metric-value">{highest_prov['poverty_rate']:.2f}%</div>
         </div>
         """, unsafe_allow_html=True)
         
     with col3:
         st.markdown(f"""
         <div class="metric-card" style="border-top-color: #2ecc71;">
-            <div class="metric-label">Terendah ({lowest_prov['provinsi']})</div>
-            <div class="metric-value">{lowest_prov['y_kemiskinan']:.2f}%</div>
+            <div class="metric-label">Lowest ({lowest_prov['province']})</div>
+            <div class="metric-value">{lowest_prov['poverty_rate']:.2f}%</div>
         </div>
         """, unsafe_allow_html=True)
 

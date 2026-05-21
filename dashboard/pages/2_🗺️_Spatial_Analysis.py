@@ -5,9 +5,11 @@ from pathlib import Path
 
 st.set_page_config(page_title="Spatial Analysis", page_icon="🗺️", layout="wide")
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 def load_css(file_name):
     try:
-        with open(file_name) as f:
+        with open(BASE_DIR / "dashboard" / file_name) as f:
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     except:
         pass
@@ -17,12 +19,12 @@ load_css('style.css')
 st.markdown("<h1>🗺️ Spatial Autocorrelation (Moran's I & LISA)</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
-OUTPUT_DIR = Path("../LAYER 3 - SPATIAL AUTOKORELASI (MORANS I + LISA MAP)/spatial_output")
+OUTPUT_DIR = BASE_DIR / "LAYER 3 - SPATIAL AUTOKORELASI (MORANS I + LISA MAP)" / "spatial_output"
 
 col1, col2 = st.columns([1, 1])
 
 with col1:
-    st.markdown("### Peta LISA (Local Indicators of Spatial Association)")
+    st.markdown("### LISA Map (Local Indicators of Spatial Association)")
     try:
         lisa_map = Image.open(OUTPUT_DIR / "plot_lisa_map.png")
         st.image(lisa_map, use_container_width=True)
@@ -38,7 +40,7 @@ with col2:
         st.warning("Image not found.")
 
 st.markdown("---")
-st.markdown("### Data Hotspot & Coldspot Kemiskinan")
+st.markdown("### Poverty Hotspot & Coldspot Data")
 try:
     df_lisa = pd.read_csv(OUTPUT_DIR / "output_lisa_results.csv")
     st.dataframe(df_lisa, use_container_width=True)

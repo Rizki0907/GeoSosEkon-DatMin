@@ -6,25 +6,26 @@ import joblib
 
 st.set_page_config(page_title="Forecasting", page_icon="📈", layout="wide")
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 def load_css(file_name):
     try:
-        with open(file_name) as f:
+        with open(BASE_DIR / "dashboard" / file_name) as f:
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     except:
         pass
 
 load_css('style.css')
 
-st.markdown("<h1>📈 Proyeksi Kemiskinan 2025-2026</h1>", unsafe_allow_html=True)
+st.markdown("<h1>📈 Poverty Projections 2025-2026</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
-OUTPUT_DIR = Path("../LAYER 2 - FORECAST + SHAP/forecast_output")
+OUTPUT_DIR = BASE_DIR / "LAYER 2 - FORECAST + SHAP" / "forecast_output"
 
-# Load pre-saved results
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("### Tren Rata-rata Nasional Historis & Proyeksi")
+    st.markdown("### Historical & Projected National Average Trend")
     try:
         img_trend = Image.open(OUTPUT_DIR / "plot_forecast_combined_trend.png")
         st.image(img_trend, use_container_width=True)
@@ -32,7 +33,7 @@ with col1:
         st.error(f"Image not found. {e}")
 
 with col2:
-    st.markdown("### Spaghetti Plot (Per Provinsi)")
+    st.markdown("### Spaghetti Plot (Per Province)")
     try:
         img_spaghetti = Image.open(OUTPUT_DIR / "plot_forecast_spaghetti.png")
         st.image(img_spaghetti, use_container_width=True)
@@ -41,7 +42,7 @@ with col2:
 
 st.markdown("---")
 st.markdown("### Interactive What-If Prediction")
-st.markdown("Gunakan slider di bawah untuk mengubah nilai indikator sosial ekonomi provinsi dan lihat prediksi tingkat kemiskinan yang dihasilkan oleh model Ensemble (Random Forest + XGBoost + LightGBM).")
+st.markdown("Use the sliders below to modify provincial socioeconomic indicators and observe the resulting poverty rate predicted by the Ensemble Model (Random Forest + XGBoost + LightGBM).")
 
 try:
     model_data = joblib.load(OUTPUT_DIR / "forecasting_models.joblib")
@@ -53,7 +54,6 @@ try:
     
     st.success("✅ Models loaded successfully!")
     
-    # Simple input form for dynamic prediction
     input_cols = st.columns(4)
     input_data = {}
     

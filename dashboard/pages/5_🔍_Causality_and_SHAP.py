@@ -5,29 +5,31 @@ from pathlib import Path
 
 st.set_page_config(page_title="Causality & SHAP", page_icon="🔍", layout="wide")
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
 def load_css(file_name):
     try:
-        with open(file_name) as f:
+        with open(BASE_DIR / "dashboard" / file_name) as f:
             st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     except:
         pass
 
 load_css('style.css')
 
-st.markdown("<h1>🔍 Kausalitas & Atribusi (Panel Regression & SHAP)</h1>", unsafe_allow_html=True)
+st.markdown("<h1>🔍 Causality & Attribution (Panel Regression & SHAP)</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
-LAYER4_DIR = Path("../LAYER 4 - FIXED EFFECT PANEL REGRESSION/panel_output")
-LAYER2_DIR = Path("../LAYER 2 - FORECAST + SHAP/forecast_output")
+LAYER4_DIR = BASE_DIR / "LAYER 4 - FIXED EFFECT PANEL REGRESSION" / "panel_output"
+LAYER2_DIR = BASE_DIR / "LAYER 2 - FORECAST + SHAP" / "forecast_output"
 
-st.markdown("## 1. Analisis Kausalitas (Fixed Effect Panel Regression)")
-st.markdown("Mengetahui hubungan sebab-akibat antara indikator sosio-ekonomi dan kemiskinan dengan mengontrol efek spesifik tiap provinsi.")
+st.markdown("## 1. Causality Analysis (Fixed Effect Panel Regression)")
+st.markdown("Analyze causal relationships between socio-economic indicators and poverty by controlling for province-specific fixed effects.")
 
 col1, col2 = st.columns(2)
 with col1:
     try:
         df_coef = pd.read_csv(LAYER4_DIR / "output_fe_coefficient.csv")
-        st.markdown("### Tabel Koefisien Regresi")
+        st.markdown("### Regression Coefficient Table")
         st.dataframe(df_coef, use_container_width=True)
     except Exception as e:
         st.error(f"Coefficient data not found. {e}")
@@ -41,8 +43,8 @@ with col2:
 
 st.markdown("---")
 
-st.markdown("## 2. Atribusi Fitur (SHAP - Model Machine Learning)")
-st.markdown("Menjelaskan seberapa besar kontribusi masing-masing fitur dalam model *forecasting* kemiskinan yang menggunakan algoritma Ensemble Tree.")
+st.markdown("## 2. Feature Attribution (SHAP - Machine Learning Model)")
+st.markdown("Explains the contribution of each feature in the poverty forecasting model using the Ensemble Tree algorithm.")
 
 col3, col4 = st.columns(2)
 with col3:
