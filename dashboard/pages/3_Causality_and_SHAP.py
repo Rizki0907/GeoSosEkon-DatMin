@@ -3,7 +3,7 @@ import pandas as pd
 from PIL import Image
 from pathlib import Path
 
-st.set_page_config(page_title="Causality & SHAP", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="Causality & SHAP", page_icon="", layout="wide")
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -16,7 +16,7 @@ def load_css(file_name):
 
 load_css('style.css')
 
-st.markdown("<h1>🔍 Causality & Attribution (Panel Regression & SHAP)</h1>", unsafe_allow_html=True)
+st.markdown("<h1> Causality & Attribution (Panel Regression & SHAP)</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
 LAYER4_DIR = BASE_DIR / "LAYER 4 - FIXED EFFECT PANEL REGRESSION" / "panel_output"

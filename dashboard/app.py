@@ -4,7 +4,7 @@ from pathlib import Path
 
 st.set_page_config(
     page_title="GeoSosEkon Dashboard",
-    page_icon="🌍",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -47,7 +47,7 @@ def load_data():
 
 df = load_data()
 
-st.markdown("<h1 style='text-align: center; color: #2c3e50;'>🌍 GeoSosEkon Dashboard</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #2c3e50;'> GeoSosEkon Dashboard</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center; color: #7f8c8d;'>Multimodal Spatial-Temporal Analytics System for Provincial Poverty Dynamics in Indonesia</h3>", unsafe_allow_html=True)
 st.markdown("---")
 
@@ -57,7 +57,7 @@ st.markdown("""
     <p>This dashboard is the interactive interface of the <b>GeoSosEkon</b> project. The system integrates quantitative socioeconomic data from BPS with qualitative public sentiment data from Twitter, running five independent analytical modules.</p>
     <p>Please navigate through the sidebar menu to explore each analytical layer:</p>
     <ul>
-        <li><b>Provincial Typology (Clustering)</b> - Coming Soon</li>
+        <li><b>Provincial Typology (Clustering)</b></li>
         <li><b>Poverty Hotspot Map (Spatial)</b></li>
         <li><b>Projections & Predictions 2025-2026 (Forecasting)</b></li>
         <li><b>Causality & Attribution (Panel Regression & SHAP)</b></li>

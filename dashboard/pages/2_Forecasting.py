@@ -4,7 +4,7 @@ from PIL import Image
 from pathlib import Path
 import joblib
 
-st.set_page_config(page_title="Forecasting", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Forecasting", page_icon="", layout="wide")
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -17,7 +17,7 @@ def load_css(file_name):
 
 load_css('style.css')
 
-st.markdown("<h1>📈 Poverty Projections 2025-2026</h1>", unsafe_allow_html=True)
+st.markdown("<h1> Poverty Projections 2025-2026</h1>", unsafe_allow_html=True)
 st.markdown("---")
 
 OUTPUT_DIR = BASE_DIR / "LAYER 2 - FORECAST + SHAP" / "forecast_output"

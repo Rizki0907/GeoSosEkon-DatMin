@@ -1,0 +1,646 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import matplotlib.colors as mcolors
+import seaborn as sns
+from scipy import stats
+
+import libpysal
+from libpysal.weights import KNN
+from esda.moran import Moran, Moran_Local
+
+from pathlib import Path
+import warnings
+warnings.filterwarnings('ignore')
+
+PROJECT_ROOT = Path.cwd().parent
+DATA_PATH = PROJECT_ROOT / 'data_bps_datmin.csv'
+OUTPUT_DIR = Path('spatial_output')
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+plt.rcParams['figure.dpi'] = 120
+plt.rcParams['font.size'] = 11
+plt.rcParams['axes.titlesize'] = 13
+plt.rcParams['axes.labelsize'] = 11
+
+print('All libraries were imported successfully.')
+print(f'libpysal version: {libpysal.__version__}')
+
+
+df_raw = pd.read_csv(DATA_PATH)
+df_raw.columns = [
+    'province', 'year', 'aps_1315', 'aps_1618', 'aps_1924',
+    'tpt_feb', 'tpt_aug', 'tpak_feb', 'tpak_aug',
+    'poverty_line_march', 'poverty_line_september',
+    'poor_population_march', 'poor_population_september',
+    'poverty_pct_march', 'poverty_pct_september',
+    'hdi', 'mean_years_schooling', 'expected_years_schooling'
+]
+
+print(f'Rows: {df_raw.shape[0]}')
+print(f'Columns: {df_raw.shape[1]}')
+print(f'Unique provinces: {df_raw["province"].nunique()}')
+print(f'Years: {sorted(df_raw["year"].unique())}')
+print()
+print(df_raw.columns.tolist())
+print()
+df_raw.head()
+
+
+desc = df_raw.describe()
+print(desc.to_string())
+
+
+print('=== Missing Values by Column ===')
+missing = df_raw.isnull().sum()
+print(missing[missing > 0] if missing.sum() > 0 else 'No missing values.')
+print()
+
+dup = df_raw.duplicated(subset=['province', 'year']).sum()
+print(f'Duplicates (Province x Year): {dup}')
+
+
+df = df_raw.copy()
+df.columns = [
+    'province', 'year', 'aps_1315', 'aps_1618', 'aps_1924',
+    'tpt_feb', 'tpt_aug', 'tpak_feb', 'tpak_aug',
+    'poverty_line_march', 'poverty_line_september',
+    'poor_population_march', 'poor_population_september',
+    'poverty_pct_march', 'poverty_pct_september',
+    'hdi', 'mean_years_schooling', 'expected_years_schooling'
+]
+
+df['poverty_rate'] = (df['poverty_pct_march'] + df['poverty_pct_september']) / 2
+
+df['tpt_avg'] = (df['tpt_feb'] + df['tpt_aug']) / 2
+
+df['tpak_avg'] = (df['tpak_feb'] + df['tpak_aug']) / 2
+
+df['province'] = df['province'].str.strip().str.upper()
+
+print('=== Dataset after preprocessing ===')
+print(f'Shape: {df.shape}')
+print(df[['province', 'year', 'poverty_rate', 'hdi', 'tpt_avg']].head(10).to_string())
+
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+years = sorted(df['year'].unique())
+data_by_year = [df[df['year'] == y]['poverty_rate'].values for y in years]
+axes[0].boxplot(data_by_year, labels=years, patch_artist=True,
+                boxprops=dict(facecolor='#4472C4', alpha=0.7))
+axes[0].set_title('Poverty Rate Distribution by Year')
+axes[0].set_xlabel('Year')
+axes[0].set_ylabel('Poverty Rate (%)')
+axes[0].grid(axis='y', alpha=0.4)
+
+prov_avg = df.groupby('province')['poverty_rate'].mean().sort_values(ascending=False)
+top10 = prov_avg.head(10)
+colors_bar = ['#C00000' if v >= prov_avg.median() * 1.5 else '#4472C4' for v in top10.values]
+axes[1].barh(range(len(top10)), top10.values, color=colors_bar, alpha=0.8)
+axes[1].set_yticks(range(len(top10)))
+axes[1].set_yticklabels(top10.index, fontsize=9)
+axes[1].set_title('Top 10 Provinces by Average Poverty Rate (2021-2024)')
+axes[1].set_xlabel('Poverty Rate (%)')
+axes[1].grid(axis='x', alpha=0.4)
+axes[1].invert_yaxis()
+
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'plot_poverty_distribution.png', bbox_inches='tight')
+plt.show()
+
+print('\nTop 10 Provinces by Average Poverty Rate (2021-2024)')
+print(top10.round(2).to_string())
+
+
+province_COORDS = {
+    'ACEH': (95.317, 4.695),
+    'SUMATERA UTARA': (98.672, 2.115),
+    'SUMATERA BARAT': (100.355, -0.744),
+    'RIAU': (101.447, 0.293),
+    'JAMBI': (102.437, -1.609),
+    'SUMATERA SELATAN': (104.761, -3.319),
+    'BENGKULU': (102.346, -3.800),
+    'LAMPUNG': (105.322, -4.558),
+    'KEPULAUAN BANGKA BELITUNG': (106.116, -2.741),
+    'KEPULAUAN RIAU': (104.030, 0.921),
+    'DKI JAKARTA': (106.845, -6.208),
+    'JAWA BARAT': (107.619, -6.902),
+    'JAWA TENGAH': (110.165, -7.150),
+    'DI YOGYAKARTA': (110.365, -7.800),
+    'JAWA TIMUR': (112.752, -7.536),
+    'BANTEN': (106.064, -6.406),
+    'BALI': (115.188, -8.409),
+    'NUSA TENGGARA BARAT': (116.419, -8.600),
+    'NUSA TENGGARA TIMUR': (121.079, -8.657),
+    'KALIMANTAN BARAT': (109.697, -0.023),
+    'KALIMANTAN TENGAH': (113.941, -1.681),
+    'KALIMANTAN SELATAN': (115.283, -3.093),
+    'KALIMANTAN TIMUR': (116.419, 1.681),
+    'KALIMANTAN UTARA': (116.593, 3.073),
+    'SULAWESI UTARA': (124.841, 0.632),
+    'SULAWESI TENGAH': (121.445, -1.431),
+    'SULAWESI SELATAN': (120.190, -3.668),
+    'SULAWESI TENGGARA': (122.390, -4.145),
+    'GORONTALO': (122.446, 0.541),
+    'SULAWESI BARAT': (119.313, -2.840),
+    'MALUKU': (128.175, -3.238),
+    'MALUKU UTARA': (127.624, 1.571),
+    'PAPUA BARAT': (133.173, -1.336),
+    'PAPUA': (138.379, -4.269),
+    'PAPUA PEGUNUNGAN': (138.600, -4.000),
+    'PAPUA SELATAN': (138.500, -6.500),
+    'PAPUA TENGAH': (136.500, -3.500),
+    'PAPUA BARAT DAYA': (131.500, -1.500)
+}
+
+coords_df = pd.DataFrame(
+    [(k, v[0], v[1]) for k, v in province_COORDS.items()],
+    columns=['province', 'lon', 'lat']
+)
+
+print(f'Total provinces with coordinates: {len(coords_df)}')
+
+prov_in_data = set(df['province'].unique())
+prov_in_coords = set(coords_df['province'].unique())
+missing_coords = prov_in_data - prov_in_coords
+print(f'\nProvinces in data but missing coordinates: {missing_coords}')
+
+missing_data = prov_in_coords - prov_in_data
+print(f'Provinces in coordinates but missing from data: {missing_data}')
+
+
+PROV_MAP = {
+    'KEPULAUAN BANGKA BELITUNG': 'KEP. BANGKA BELITUNG',
+    'KEPULAUAN RIAU': 'KEP. RIAU',
+    'DKI JAKARTA': 'DKI JAKARTA',
+    'DI YOGYAKARTA': 'DI YOGYAKARTA',
+    'NUSA TENGGARA BARAT': 'NUSA TENGGARA BARAT',
+    'NUSA TENGGARA TIMUR': 'NUSA TENGGARA TIMUR',
+}
+
+print('Province names in the dataset:')
+for p in sorted(df['province'].unique()):
+    matched = p in province_COORDS
+    print(f'  {p:45s} -> {"OK" if matched else "NO MATCH"}')
+
+
+def get_coords(prov_name, coords_dict):
+    if prov_name in coords_dict:
+        return coords_dict[prov_name]
+    for key in coords_dict:
+        if prov_name in key or key in prov_name:
+            return coords_dict[key]
+    return None
+
+df['lon'] = df['province'].apply(lambda x: get_coords(x, {k: v[0] for k, v in province_COORDS.items()}))
+df['lat'] = df['province'].apply(lambda x: get_coords(x, {k: v[1] for k, v in province_COORDS.items()}))
+
+no_coords = df[df['lon'].isnull()]['province'].unique()
+print(f'Provinces without coordinates: {no_coords}')
+
+df = df.dropna(subset=['lon', 'lat'])
+print(f'\nShape after coordinate filtering: {df.shape}')
+
+
+df_2023 = df[df['year'] == 2023].copy().reset_index(drop=True)
+
+print(f'2023 data: {df_2023.shape[0]} provinces')
+print(df_2023[['province', 'poverty_rate', 'lon', 'lat']].to_string())
+
+
+coords_arr = list(zip(df_2023['lon'].values, df_2023['lat'].values))
+
+W_knn = KNN.from_array(coords_arr, k=5)
+W_knn.transform = 'r'
+
+print('=== KNN Spatial Weights Matrix (k=5) ===')
+print(f'Number of observations: {W_knn.n}')
+print(f'Average neighbors: {W_knn.mean_neighbors:.2f}')
+print(f'Minimum neighbors: {W_knn.min_neighbors}')
+print(f'Maximum neighbors: {W_knn.max_neighbors}')
+print(f'Sparsity: {W_knn.pct_nonzero:.2f}%')
+
+
+fig, ax = plt.subplots(figsize=(14, 7))
+
+lons = df_2023['lon'].values
+lats = df_2023['lat'].values
+pov_vals = df_2023['poverty_rate'].values
+
+for i, neighbors in W_knn.neighbors.items():
+    for j in neighbors:
+        ax.plot([lons[i], lons[j]], [lats[i], lats[j]],
+                'k-', alpha=0.15, linewidth=0.7)
+
+sc = ax.scatter(lons, lats, c=pov_vals, cmap='RdYlGn_r',
+                s=150, zorder=5, edgecolors='black', linewidths=0.5)
+
+for i, row in df_2023.iterrows():
+    ax.annotate(row['province'].replace(' ', '\n'),
+                xy=(row['lon'], row['lat']),
+                xytext=(3, 3), textcoords='offset points',
+                fontsize=5.5, alpha=0.8)
+
+plt.colorbar(sc, ax=ax, label='Poverty Rate (%)')
+ax.set_title('Indonesian Provincial Spatial Connectivity Map\n(KNN k=5, 2023 Poverty Rate)')
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'plot_spatial_connectivity.png', bbox_inches='tight')
+plt.show()
+
+
+results_global = []
+
+for year in sorted(df['year'].unique()):
+    df_t = df[df['year'] == year].copy().reset_index(drop=True)
+    coords_t = list(zip(df_t['lon'].values, df_t['lat'].values))
+    W_t = KNN.from_array(coords_t, k=5)
+    W_t.transform = 'r'
+
+    y = df_t['poverty_rate'].values
+
+    moran = Moran(y, W_t, permutations=999)
+
+    results_global.append({
+        'year': year,
+        'n_province': len(df_t),
+        'moran_i': moran.I,
+        'expected_i': moran.EI,
+        'z_score': moran.z_norm,
+        'p_value': moran.p_norm,
+        'p_sim': moran.p_sim,
+        'significant': moran.p_sim < 0.05
+    })
+
+    print(f'\nYear {year}:')
+    print(f'  Moran\'s I      = {moran.I:.4f}')
+    print(f'  Expected I    = {moran.EI:.4f}')
+    print(f'  Z-score       = {moran.z_norm:.4f}')
+    print(f'  p-value (norm)= {moran.p_norm:.4f}')
+    print(f'  p-value (sim) = {moran.p_sim:.4f}')
+    print(f'  Significant?   = {moran.p_sim < 0.05}')
+    if moran.I > 0 and moran.p_sim < 0.05:
+        print(f'  Interpretation  : There is significant positive spatial clustering')
+    elif moran.I < 0 and moran.p_sim < 0.05:
+        print(f'  Interpretation  : There is significant spatial dispersion')
+    else:
+        print(f'  Interpretation  : Pola ACAK (not significant)')
+
+df_global = pd.DataFrame(results_global)
+print("\n=== Global Moran's I Summary ===")
+print(df_global.to_string(index=False))
+
+
+years = sorted(df['year'].unique())
+n_years = len(years)
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+axes = axes.flatten()
+
+for idx, year in enumerate(years):
+    ax = axes[idx]
+    df_t = df[df['year'] == year].copy().reset_index(drop=True)
+    coords_t = list(zip(df_t['lon'].values, df_t['lat'].values))
+    W_t = KNN.from_array(coords_t, k=5)
+    W_t.transform = 'r'
+
+    y = df_t['poverty_rate'].values
+    moran = Moran(y, W_t, permutations=999)
+
+    y_std = (y - y.mean()) / y.std()
+    lag_y_std = libpysal.weights.lag_spatial(W_t, y_std)
+
+    colors = []
+    for yi, lyi in zip(y_std, lag_y_std):
+        if yi >= 0 and lyi >= 0:
+            colors.append('#C00000')
+        elif yi < 0 and lyi < 0:
+            colors.append('#4472C4')
+        elif yi >= 0 and lyi < 0:
+            colors.append('#FF7F00')
+        else:
+            colors.append('#70AD47')
+
+    ax.scatter(y_std, lag_y_std, c=colors, alpha=0.8, s=60, edgecolors='black', linewidths=0.4)
+
+    slope, intercept, r, p, se = stats.linregress(y_std, lag_y_std)
+    x_line = np.linspace(y_std.min(), y_std.max(), 100)
+    ax.plot(x_line, slope * x_line + intercept, 'k-', linewidth=1.5)
+
+    ax.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+    ax.axvline(0, color='gray', linestyle='--', linewidth=0.8)
+
+    ax.set_xlabel('Poverty Rate (z-score)')
+    ax.set_ylabel('Spatial Lag Poverty Rate (z-score)')
+    ax.set_title(f'Moran Scatter Plot {year}\nI = {moran.I:.4f}, p = {moran.p_sim:.4f}')
+
+    xr = ax.get_xlim()
+    yr = ax.get_ylim()
+    ax.text(xr[1]*0.6, yr[1]*0.8, 'HH', color='#C00000', fontsize=9, fontweight='bold')
+    ax.text(xr[0]*0.8, yr[0]*0.8, 'LL', color='#4472C4', fontsize=9, fontweight='bold')
+    ax.text(xr[1]*0.6, yr[0]*0.8, 'HL', color='#FF7F00', fontsize=9, fontweight='bold')
+    ax.text(xr[0]*0.8, yr[1]*0.8, 'LH', color='#70AD47', fontsize=9, fontweight='bold')
+    ax.grid(alpha=0.3)
+
+plt.suptitle('Indonesian Provincial Poverty Moran Scatter Plot 2021-2024',
+             fontsize=14, fontweight='bold', y=1.01)
+legend_patches = [
+    mpatches.Patch(color='#C00000', label='HH: High-High (high cluster)'),
+    mpatches.Patch(color='#4472C4', label='LL: Low-Low (low cluster)'),
+    mpatches.Patch(color='#FF7F00', label='HL: High-Low (high outlier)'),
+    mpatches.Patch(color='#70AD47', label='LH: Low-High (low outlier)'),
+]
+fig.legend(handles=legend_patches, loc='lower center', ncol=4, fontsize=9,
+           bbox_to_anchor=(0.5, -0.03))
+
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'plot_moran_scatter.png', bbox_inches='tight')
+plt.show()
+
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+ax = axes[0]
+ax.plot(df_global['year'], df_global['moran_i'], 'bo-', linewidth=2, markersize=8, label="Moran's I")
+ax.axhline(df_global['expected_i'].mean(), color='gray', linestyle='--', label='Expected I')
+for _, row in df_global.iterrows():
+    color = 'red' if row['significant'] else 'black'
+    ax.annotate(f"I={row['moran_i']:.3f}\np={row['p_sim']:.3f}",
+                xy=(row['year'], row['moran_i']),
+                xytext=(0, 12), textcoords='offset points',
+                fontsize=8.5, ha='center', color=color)
+ax.set_xlabel('Year')
+ax.set_ylabel("Moran's I")
+ax.set_title("Trend of Global Moran's I (2021-2024)")
+ax.legend()
+ax.grid(alpha=0.4)
+ax.set_xticks(df_global['year'])
+
+ax2 = axes[1]
+ax2.bar(df_global['year'], df_global['z_score'],
+        color=['#C00000' if s else '#4472C4' for s in df_global['significant']],
+        alpha=0.8, edgecolor='black')
+ax2.axhline(1.96, color='red', linestyle='--', label='Z kritis = 1.96 (p<0.05)')
+ax2.axhline(-1.96, color='red', linestyle='--')
+ax2.set_xlabel('Year')
+ax2.set_ylabel('Z-score')
+ax2.set_title("Z-score Moran's I (2021-2024)")
+ax2.legend()
+ax2.grid(alpha=0.4)
+ax2.set_xticks(df_global['year'])
+
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'plot_moran_trend.png', bbox_inches='tight')
+plt.show()
+
+
+lisa_results_all = []
+
+LISA_COLORS = {
+    'HH': '#C00000',
+    'LL': '#4472C4',
+    'HL': '#FF7F00',
+    'LH': '#70AD47',
+    'NS': '#D3D3D3'
+}
+
+for year in sorted(df['year'].unique()):
+    df_t = df[df['year'] == year].copy().reset_index(drop=True)
+    coords_t = list(zip(df_t['lon'].values, df_t['lat'].values))
+    W_t = KNN.from_array(coords_t, k=5)
+    W_t.transform = 'r'
+
+    y = df_t['poverty_rate'].values
+
+    lisa = Moran_Local(y, W_t, permutations=999)
+
+    y_std = (y - y.mean()) / y.std()
+    lag_y_std = libpysal.weights.lag_spatial(W_t, y_std)
+
+    sig_mask = lisa.p_sim < 0.05
+    quadrant = []
+    for i in range(len(y_std)):
+        if not sig_mask[i]:
+            quadrant.append('NS')
+        elif y_std[i] >= 0 and lag_y_std[i] >= 0:
+            quadrant.append('HH')
+        elif y_std[i] < 0 and lag_y_std[i] < 0:
+            quadrant.append('LL')
+        elif y_std[i] >= 0 and lag_y_std[i] < 0:
+            quadrant.append('HL')
+        else:
+            quadrant.append('LH')
+
+    for i, row in df_t.iterrows():
+        lisa_results_all.append({
+            'year': year,
+            'province': row['province'],
+            'poverty_rate': row['poverty_rate'],
+            'local_moran_i': lisa.Is[i],
+            'p_value': lisa.p_sim[i],
+            'quadrant': quadrant[i],
+            'significant': sig_mask[i],
+            'lon': row['lon'],
+            'lat': row['lat']
+        })
+
+df_lisa = pd.DataFrame(lisa_results_all)
+
+print('Hasil LISA by Year')
+for year in sorted(df_lisa['year'].unique()):
+    sub = df_lisa[df_lisa['year'] == year]
+    print(f'\nYear {year}:')
+    count_sig = sub[sub['significant']].groupby('quadrant').size()
+    count_all = sub.groupby('quadrant').size()
+    print(f'  Cluster significant (p<0.05): {sub["significant"].sum()} dari {len(sub)} province')
+    print('  Distribution quadrant (significant):')
+    for k in ['HH', 'LL', 'HL', 'LH', 'NS']:
+        n = count_all.get(k, 0)
+        if n > 0:
+            print(f'    {k}: {n} province')
+    sig_df = sub[sub['significant']].sort_values('quadrant')
+    if len(sig_df) > 0:
+        print('  Province significant:')
+        for _, r in sig_df.iterrows():
+            print(f'    [{r["quadrant"]}] {r["province"]} (I={r["local_moran_i"]:.4f}, p={r["p_value"]:.4f})')
+
+
+years = sorted(df_lisa['year'].unique())
+fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+axes = axes.flatten()
+
+LISA_COLORS = {
+    'HH': '#C00000',
+    'LL': '#4472C4',
+    'HL': '#FF7F00',
+    'LH': '#70AD47',
+    'NS': '#D3D3D3'
+}
+
+for idx, year in enumerate(years):
+    ax = axes[idx]
+    sub = df_lisa[df_lisa['year'] == year]
+
+    for _, row in sub.iterrows():
+        ax.scatter(row['lon'], row['lat'],
+                   c=LISA_COLORS[row['quadrant']],
+                   s=180 if row['significant'] else 80,
+                   edgecolors='black',
+                   linewidths=1.0 if row['significant'] else 0.3,
+                   zorder=5,
+                   alpha=1.0 if row['significant'] else 0.4)
+        if row['significant']:
+            ax.annotate(row['province'].split()[0],
+                        xy=(row['lon'], row['lat']),
+                        xytext=(3, 3), textcoords='offset points',
+                        fontsize=6, fontweight='bold')
+
+    ax.set_title(f'LISA Poverty Map {year}')
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.grid(alpha=0.3)
+
+    sig_count = sub['significant'].sum()
+    ax.text(0.02, 0.98, f'Sig: {sig_count}/{len(sub)} province',
+            transform=ax.transAxes, fontsize=9, va='top',
+            bbox=dict(boxstyle='round', facecolor='white', alpha=0.7))
+
+legend_patches = [
+    mpatches.Patch(color=LISA_COLORS['HH'], label='HH: High-High (poverty hotspot)'),
+    mpatches.Patch(color=LISA_COLORS['LL'], label='LL: Low-Low (poverty coldspot)'),
+    mpatches.Patch(color=LISA_COLORS['HL'], label='HL: High-Low (high outlier)'),
+    mpatches.Patch(color=LISA_COLORS['LH'], label='LH: Low-High (low outlier)'),
+    mpatches.Patch(color=LISA_COLORS['NS'], label='NS: Not significant'),
+]
+fig.legend(handles=legend_patches, loc='lower center', ncol=5, fontsize=8.5,
+           bbox_to_anchor=(0.5, -0.03))
+
+plt.suptitle('LISA Poverty Map Province Indonesia 2021-2024\n(larger points indicate p < 0.05)',
+             fontsize=13, fontweight='bold')
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'plot_lisa_map.png', bbox_inches='tight')
+plt.show()
+
+
+pivot_quadrant = df_lisa.pivot(index='province', columns='year', values='quadrant')
+
+QUADRANT_CODE = {'HH': 4, 'LH': 3, 'HL': 2, 'LL': 1, 'NS': 0}
+pivot_num = pivot_quadrant.applymap(lambda x: QUADRANT_CODE.get(x, 0))
+
+ever_sig = df_lisa[df_lisa['significant']]['province'].unique()
+pivot_num_sig = pivot_num.loc[pivot_num.index.isin(ever_sig)]
+
+if len(pivot_num_sig) > 0:
+    fig, ax = plt.subplots(figsize=(10, max(6, len(pivot_num_sig) * 0.4)))
+
+    cmap = mcolors.ListedColormap(['#D3D3D3', '#4472C4', '#FF7F00', '#70AD47', '#C00000'])
+    bounds = [-0.5, 0.5, 1.5, 2.5, 3.5, 4.5]
+    norm = mcolors.BoundaryNorm(bounds, cmap.N)
+
+    im = ax.imshow(pivot_num_sig.values, cmap=cmap, norm=norm, aspect='auto')
+
+    ax.set_xticks(range(len(pivot_num_sig.columns)))
+    ax.set_xticklabels(pivot_num_sig.columns)
+    ax.set_yticks(range(len(pivot_num_sig.index)))
+    ax.set_yticklabels(pivot_num_sig.index, fontsize=8)
+
+    for i in range(len(pivot_num_sig.index)):
+        for j in range(len(pivot_num_sig.columns)):
+            val = pivot_num_sig.values[i, j]
+            label = {v: k for k, v in QUADRANT_CODE.items()}[val]
+            ax.text(j, i, label, ha='center', va='center', fontsize=9, fontweight='bold',
+                    color='white' if val in [1, 4] else 'black')
+
+    cbar = plt.colorbar(im, ax=ax, ticks=[0, 1, 2, 3, 4])
+    cbar.ax.set_yticklabels(['NS', 'LL', 'HL', 'LH', 'HH'])
+
+    ax.set_title('LISA Quadrant Consistency per Province (2021-2024)\n(only provinces significant at least once)')
+    ax.set_xlabel('Year')
+    ax.set_ylabel('Province')
+
+    plt.tight_layout()
+    plt.savefig(OUTPUT_DIR / 'plot_lisa_consistency.png', bbox_inches='tight')
+    plt.show()
+else:
+    print('There is no province that was ever significant in LISA.')
+
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+data_local_i = [df_lisa[df_lisa['year'] == t]['local_moran_i'].values
+                for t in sorted(df_lisa['year'].unique())]
+axes[0].boxplot(data_local_i, labels=sorted(df_lisa['year'].unique()),
+                patch_artist=True, boxprops=dict(facecolor='#4472C4', alpha=0.7))
+axes[0].axhline(0, color='red', linestyle='--', alpha=0.7)
+axes[0].set_title('Distribution Local Moran\'s I by Year')
+axes[0].set_xlabel('Year')
+axes[0].set_ylabel("Local Moran's I")
+axes[0].grid(alpha=0.4)
+
+count_cluster = df_lisa[df_lisa['significant']].groupby(['year', 'quadrant']).size().unstack(fill_value=0)
+count_cluster.plot(kind='bar', ax=axes[1],
+                   color=[LISA_COLORS.get(c, 'gray') for c in count_cluster.columns],
+                   alpha=0.85, edgecolor='black')
+axes[1].set_title('Number of Provinces per Tipe Cluster LISA (Significant)')
+axes[1].set_xlabel('Year')
+axes[1].set_ylabel('Number of Provinces')
+axes[1].legend(title='Quadrant')
+axes[1].grid(alpha=0.4)
+axes[1].tick_params(axis='x', rotation=0)
+
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / 'plot_lisa_distribution.png', bbox_inches='tight')
+plt.show()
+
+
+df_global.to_csv(OUTPUT_DIR / 'output_global_morans_i.csv', index=False)
+print('Saved: output_global_morans_i.csv')
+print(df_global.to_string(index=False))
+
+print()
+
+df_lisa_out = df_lisa[[
+    'year', 'province', 'poverty_rate',
+    'local_moran_i', 'p_value', 'quadrant', 'significant', 'lon', 'lat'
+]].sort_values(['year', 'province'])
+
+df_lisa_out.to_csv(OUTPUT_DIR / 'output_lisa_results.csv', index=False)
+print('Saved: output_lisa_results.csv')
+print(df_lisa_out.head(20).to_string(index=False))
+
+print(f'\nTotal rows output LISA: {len(df_lisa_out)}')
+print(f'Columns: {df_lisa_out.columns.tolist()}')
+
+
+print('SPATIAL AUTOCORRELATION ANALYSIS SUMMARY')
+print()
+print('GLOBAL MORAN\'S I:')
+for _, row in df_global.iterrows():
+    sig = 'SIGNIFICANT' if row['significant'] else 'not significant'
+    print(f"  {int(row['year'])}: I = {row['moran_i']:.4f}, "
+          f"z = {row['z_score']:.4f}, p = {row['p_sim']:.4f} [{sig}]")
+
+print()
+print('SIGNIFICANT LISA CLUSTERS (p<0.05):')
+for year in sorted(df_lisa['year'].unique()):
+    sub = df_lisa[(df_lisa['year'] == year) & (df_lisa['significant'])]
+    hh = sub[sub['quadrant'] == 'HH']['province'].tolist()
+    ll = sub[sub['quadrant'] == 'LL']['province'].tolist()
+    hl = sub[sub['quadrant'] == 'HL']['province'].tolist()
+    lh = sub[sub['quadrant'] == 'LH']['province'].tolist()
+    print(f'  {year}:')
+    if hh: print(f'    HH (hotspot): {hh}')
+    if ll: print(f'    LL (coldspot): {ll}')
+    if hl: print(f'    HL (high outlier): {hl}')
+    if lh: print(f'    LH (low outlier): {lh}')
+    if not (hh or ll or hl or lh): print('    No significant clusters')
+
+print()
+print('CSV Outputs:')
+print('  1. output_global_morans_i.csv  -> Global Moran\'s I by year')
+print('  2. output_lisa_results.csv     -> LISA by province by year')
+
