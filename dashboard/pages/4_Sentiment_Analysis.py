@@ -1,5 +1,6 @@
 import streamlit as st
 import plotly.io as pio
+import pandas as pd
 from pathlib import Path
 
 st.set_page_config(page_title="Public Sentiment", layout="wide")
@@ -44,3 +45,17 @@ fig_hm = load_plotly("plot_sentiment_heatmap.json")
 if fig_hm:
     st.markdown("### 🔥 Sentiment Heatmap")
     st.plotly_chart(fig_hm, use_container_width=True)
+
+st.markdown("---")
+st.markdown("### ☁️ Sentiment Wordcloud")
+wordcloud_path = SENTIMENT_OUTPUT / "plot_sentiment_wordcloud.png"
+if wordcloud_path.exists():
+    st.image(str(wordcloud_path), use_column_width=True)
+
+st.markdown("---")
+st.markdown("### 📝 Raw Sentiment Dataset")
+try:
+    df_tweets = pd.read_csv(SENTIMENT_OUTPUT / "output_sentiment_per_tweet.csv")
+    st.dataframe(df_tweets, use_container_width=True)
+except Exception as e:
+    st.error(f"Could not load raw dataset: {e}")
