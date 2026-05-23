@@ -85,4 +85,15 @@ if df is not None:
         """, unsafe_allow_html=True)
 
 st.markdown("---")
+st.markdown("""
+<div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+    <h4 style="margin-top: 0; color: #3498db;">👥 Project Team Members</h4>
+    <ul style="list-style-type: none; padding-left: 10px; margin-bottom: 0;">
+        <li>👨‍💻 <b>Rizki Piji Fathoni</b> (24031554029)</li>
+        <li>👨‍💻 <b>Muhammad Rafi Fahrezi</b> (24031554100)</li>
+        <li>👨‍💻 <b>Nazril Ravi Pratama</b> (2403155129)</li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
+
 st.caption("© 2026 GeoSosEkon Project - Data Mining Final Project")
