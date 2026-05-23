@@ -12,8 +12,11 @@ SENTIMENT_OUTPUT = BASE_DIR / "LAYER 5 - ROBERTA SENTIMENT" / "sentiment_output"
 
 def load_plotly(filename):
     try:
-        return pio.read_json(SENTIMENT_OUTPUT / filename)
+        with open(SENTIMENT_OUTPUT / filename, 'r', encoding='utf-8') as f:
+            json_str = f.read().replace('"heatmapgl"', '"heatmap"')
+        return pio.from_json(json_str)
     except Exception as e:
+        st.error(f"Error loading {filename}: {e}")
         return None
 
 fig_overall = load_plotly("plot_sentiment_overall.json")

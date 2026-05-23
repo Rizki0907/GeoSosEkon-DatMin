@@ -13,8 +13,11 @@ FORECAST_OUTPUT = BASE_DIR / "LAYER 2 - FORECAST + SHAP" / "forecast_output"
 
 def load_plotly(filename):
     try:
-        return pio.read_json(FORECAST_OUTPUT / filename)
+        with open(FORECAST_OUTPUT / filename, 'r', encoding='utf-8') as f:
+            json_str = f.read().replace('"heatmapgl"', '"heatmap"')
+        return pio.from_json(json_str)
     except Exception as e:
+        st.error(f"Error loading {filename}: {e}")
         return None
 
 fig_spag = load_plotly("plot_forecast_spaghetti.json")

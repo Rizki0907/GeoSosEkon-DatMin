@@ -12,8 +12,11 @@ PANEL_OUTPUT = BASE_DIR / "LAYER 4 - FIXED EFFECT PANEL REGRESSION" / "panel_out
 
 def load_plotly(filename):
     try:
-        return pio.read_json(PANEL_OUTPUT / filename)
+        with open(PANEL_OUTPUT / filename, 'r', encoding='utf-8') as f:
+            json_str = f.read().replace('"heatmapgl"', '"heatmap"')
+        return pio.from_json(json_str)
     except Exception as e:
+        st.error(f"Error loading {filename}: {e}")
         return None
 
 fig_trends = load_plotly("plot_panel_trends.json")

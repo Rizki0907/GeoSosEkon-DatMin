@@ -13,8 +13,11 @@ SPATIAL_OUTPUT = BASE_DIR / "LAYER 3 - SPATIAL AUTOKORELASI (MORANS I + LISA MAP
 
 def load_plotly(filename):
     try:
-        return pio.read_json(SPATIAL_OUTPUT / filename)
+        with open(SPATIAL_OUTPUT / filename, 'r', encoding='utf-8') as f:
+            json_str = f.read().replace('"heatmapgl"', '"heatmap"')
+        return pio.from_json(json_str)
     except Exception as e:
+        st.error(f"Error loading {filename}: {e}")
         return None
 
 fig_conn = load_plotly("plot_spatial_connectivity.json")

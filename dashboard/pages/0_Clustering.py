@@ -13,8 +13,11 @@ CLUSTER_OUTPUT = BASE_DIR / "LAYER 1 - CLUSTERING" / "cluster_output"
 
 def load_plotly(filename):
     try:
-        return pio.read_json(CLUSTER_OUTPUT / filename)
+        with open(CLUSTER_OUTPUT / filename, 'r', encoding='utf-8') as f:
+            json_str = f.read().replace('"heatmapgl"', '"heatmap"')
+        return pio.from_json(json_str)
     except Exception as e:
+        st.error(f"Error loading {filename}: {e}")
         return None
 
 col1, col2 = st.columns(2)
