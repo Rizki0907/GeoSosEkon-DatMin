@@ -1,48 +1,50 @@
 import streamlit as st
+import plotly.io as pio
 import pandas as pd
-from PIL import Image
 from pathlib import Path
 
-st.set_page_config(page_title="Spatial Analysis", page_icon="", layout="wide")
+st.set_page_config(page_title="Spatial Autocorrelation", layout="wide")
+
+st.markdown("<h2 style='text-align: center;'>🗺️ Spatial Autocorrelation (Moran's I & LISA)</h2>", unsafe_allow_html=True)
+st.markdown("---")
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+SPATIAL_OUTPUT = BASE_DIR / "LAYER 3 - SPATIAL AUTOKORELASI (MORANS I + LISA MAP)" / "spatial_output"
 
-def load_css(file_name):
+def load_plotly(filename):
     try:
-        with open(BASE_DIR / "dashboard" / file_name) as f:
-            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-    except:
-        pass
+        return pio.read_json(SPATIAL_OUTPUT / filename)
+    except Exception as e:
+        return None
 
-load_css('style.css')
+fig_conn = load_plotly("plot_spatial_connectivity.json")
+if fig_conn:
+    st.markdown("### 🌐 Spatial Connectivity Map (KNN=5)")
+    st.plotly_chart(fig_conn, use_container_width=True)
 
-st.markdown("<h1> Spatial Autocorrelation (Moran's I & LISA)</h1>", unsafe_allow_html=True)
 st.markdown("---")
+st.markdown("### 🔍 Global Moran's I")
 
-OUTPUT_DIR = BASE_DIR / "LAYER 3 - SPATIAL AUTOKORELASI (MORANS I + LISA MAP)" / "spatial_output"
-
-col1, col2 = st.columns([1, 1])
-
+col1, col2 = st.columns(2)
 with col1:
-    st.markdown("### LISA Map (Local Indicators of Spatial Association)")
-    try:
-        lisa_map = Image.open(OUTPUT_DIR / "plot_lisa_map.png")
-        st.image(lisa_map, use_container_width=True)
-    except Exception as e:
-        st.error(f"Image not found. Run Layer 3 first. {e}")
-
+    fig_trend = load_plotly("plot_moran_trend.json")
+    if fig_trend:
+        st.plotly_chart(fig_trend, use_container_width=True)
 with col2:
-    st.markdown("### Moran's Scatter Plot")
-    try:
-        moran_scatter = Image.open(OUTPUT_DIR / "plot_moran_scatter.png")
-        st.image(moran_scatter, use_container_width=True)
-    except Exception as e:
-        st.warning("Image not found.")
+    fig_scatter = load_plotly("plot_moran_scatter.json")
+    if fig_scatter:
+        st.plotly_chart(fig_scatter, use_container_width=True)
 
 st.markdown("---")
-st.markdown("### Poverty Hotspot & Coldspot Data")
+st.markdown("### 📍 Local Indicators of Spatial Association (LISA)")
+
+fig_lisa_map = load_plotly("plot_lisa_map.json")
+if fig_lisa_map:
+    st.plotly_chart(fig_lisa_map, use_container_width=True)
+
 try:
-    df_lisa = pd.read_csv(OUTPUT_DIR / "output_lisa_results.csv")
+    df_lisa = pd.read_csv(SPATIAL_OUTPUT / "output_lisa_results.csv")
+    st.markdown("### 📋 LISA Cluster Results")
     st.dataframe(df_lisa, use_container_width=True)
-except Exception as e:
-    st.error("CSV Data not found.")
+except Exception:
+    pass
