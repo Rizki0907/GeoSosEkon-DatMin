@@ -41,7 +41,7 @@ The final interactive dashboard is deployed on Streamlit Community Cloud and can
 The analytical engine behind the dashboard is structured into five distinct Jupyter Notebooks, ensuring a modular and reproducible pipeline:
 
 1. **`LAYER 1` - PROVINCIAL TYPOLOGY (CLUSTERING)**
-   Applies K-Means and Gaussian Mixture Models (GMM) combined with PCA and UMAP to group Indonesian provinces based on multi-dimensional socio-economic indicators.
+   Applies Gaussian Mixture Models (GMM) combined with PCA and UMAP dimensionality reduction to accurately group Indonesian provinces based on multi-dimensional socio-economic indicators.
    
 2. **`LAYER 2` - FORECASTING & EXPLAINABILITY**
    Uses XGBoost, LightGBM, and Random Forest models to forecast 2025-2026 poverty rates. It incorporates **SHAP** (SHapley Additive exPlanations) to interpret global and cluster-specific feature importance.

@@ -12,7 +12,7 @@ st.markdown("""
     <p>This dashboard is the interactive interface of the <b>GeoSosEkon</b> project. The system integrates quantitative socioeconomic data from BPS with qualitative public sentiment data from Twitter, running five independent analytical modules.</p>
     <p>Please navigate through the sidebar menu to explore each analytical layer:</p>
     <ul>
-        <li><b>Provincial Typology (Clustering)</b> - K-Means & GMM with UMAP</li>
+        <li><b>Provincial Typology (Clustering)</b> - GMM with PCA & UMAP</li>
         <li><b>Spatial Autocorrelation (Spatial)</b> - Moran's I & LISA</li>
         <li><b>Projections & Predictions 2025-2026 (Forecasting)</b> - XGBoost</li>
         <li><b>Causality & Attribution (Panel Regression)</b> - Fixed Effects</li>
