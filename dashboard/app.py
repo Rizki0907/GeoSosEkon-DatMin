@@ -44,7 +44,7 @@ def load_css(file_name):
     except FileNotFoundError:
         pass
 
-load_css('style.css')
+
 
 # 4. Routing via Query Parameters
 query_params = st.query_params
