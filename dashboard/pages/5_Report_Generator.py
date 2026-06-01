@@ -84,10 +84,18 @@ def show():
                     cluster_val = "Data Not Available"
                     try:
                         df_c = pd.read_csv(CLUSTER_OUTPUT)
-                        df_c['province'] = df_c['province'].str.upper()
-                        c_row = df_c[df_c['province'] == selected_prov]
+                        if 'PROVINSI' in df_c.columns:
+                            df_c['PROVINSI'] = df_c['PROVINSI'].str.upper()
+                            c_row = df_c[df_c['PROVINSI'] == selected_prov]
+                        else:
+                            df_c['province'] = df_c['province'].str.upper()
+                            c_row = df_c[df_c['province'] == selected_prov]
+                            
                         if not c_row.empty:
-                            cluster_val = f"Cluster {c_row['Cluster'].values[0]}"
+                            if 'cluster' in c_row.columns:
+                                cluster_val = f"Cluster {c_row['cluster'].values[0]}"
+                            else:
+                                cluster_val = f"Cluster {c_row['Cluster'].values[0]}"
                     except: pass
                     
                     # Gather Spatial
@@ -105,10 +113,12 @@ def show():
                     try:
                         df_f = pd.read_csv(FORECAST_OUTPUT)
                         df_f['province'] = df_f['province'].str.upper()
-                        f_row = df_f[df_f['province'] == selected_prov]
-                        if not f_row.empty:
-                            forecast_val['2025'] = round(f_row['pred_2025'].values[0], 2)
-                            forecast_val['2026'] = round(f_row['pred_2026'].values[0], 2)
+                        f_row_2025 = df_f[(df_f['province'] == selected_prov) & (df_f['year'] == 2025)]
+                        f_row_2026 = df_f[(df_f['province'] == selected_prov) & (df_f['year'] == 2026)]
+                        if not f_row_2025.empty:
+                            forecast_val['2025'] = round(f_row_2025['poverty_rate'].values[0], 2)
+                        if not f_row_2026.empty:
+                            forecast_val['2026'] = round(f_row_2026['poverty_rate'].values[0], 2)
                     except: pass
                     
                     data_dict = {
