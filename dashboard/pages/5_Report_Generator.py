@@ -13,15 +13,19 @@ if utils_path not in sys.path:
 from utils.pdf_generator import generate_pdf
 
 def show():
-    # Page Hero
+    # Page Hero matching style.css variables
     st.markdown("""
-    <div class="hero-container">
-        <div class="hero-subtitle">REPORTING ENGINE</div>
-        <div class="hero-title">Provincial Report Generator</div>
-        <div class="hero-desc">
-            Compile and export an integrated PDF report covering Clustering (Typology), Spatial, Forecasting, 
-            Regression, and Sentiment aspects for a specific province.
-        </div>
+    <div class="hero-section">
+        <div class="hero-bg-grid"></div>
+        <div class="hero-glow"></div>
+        <div class="hero-eyebrow">Reporting Engine</div>
+        <h1 class="hero-title">
+            Provincial <br><span class="grad">Report Generator</span>
+        </h1>
+        <p class="hero-sub">
+            Compile and export an integrated PDF report covering Clustering (Typology), Spatial Autocorrelation, 
+            Forecasting, Panel Regression, and Sentiment aspects for a specific province.
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -45,14 +49,15 @@ def show():
     df_base = load_base_data()
 
     if df_base is not None:
-        # Centering the selector in wide layout
+        # Centering the selector in wide layout using st.columns
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.markdown("""
-            <div class="glass-container" style="margin-top: 1rem;">
-                <h3 style="margin-top:0; font-family:'Outfit'; text-align:center; color:#06B6D4;">Generate Report</h3>
-                <p style="color:#64748B; text-align:center; font-size:0.9rem; margin-bottom: 1.5rem;">
-                    Select an Indonesian province from the list below to build an automated, comprehensive analytical profile.
+            <div class="card" style="margin-top: 1rem;">
+                <div class="card-label" style="text-align: center;">PDF Exporter</div>
+                <h3 style="margin-top:0; font-family:'Plus Jakarta Sans'; text-align:center; color:var(--primary); font-size:1.4rem;">Generate Province Profile</h3>
+                <p style="color:var(--muted); text-align:center; font-size:0.9rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                    Select an Indonesian province below to compile an automated, comprehensive analytical profile combining socio-economic BPS and public sentiment indicators.
                 </p>
             """, unsafe_allow_html=True)
             
@@ -119,7 +124,7 @@ def show():
                     if pdf_path and os.path.exists(pdf_path):
                         st.markdown(f"""
                         <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
-                            <span style="color: #10B981; font-weight: 600;">PDF Report Generated Successfully!</span>
+                            <span style="color: var(--success); font-weight: 600;">PDF Report Generated Successfully!</span>
                         </div>
                         """, unsafe_allow_html=True)
                         
