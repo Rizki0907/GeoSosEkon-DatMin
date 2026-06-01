@@ -65,6 +65,28 @@ def show():
         st.plotly_chart(fig_trends, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
+    # Section 1.5: Data Exploration & Multicollinearity
+    st.markdown("""
+    <div class="section-header">
+        <div class="section-title">Variable Correlation & Multicollinearity</div>
+        <div class="section-line"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col0_1, col0_2 = st.columns(2)
+    with col0_1:
+        fig_corr = load_plotly("plot_panel_correlation.json")
+        if fig_corr:
+            st.markdown('<div class="card"><div class="card-label">Feature Correlation Heatmap</div>', unsafe_allow_html=True)
+            st.plotly_chart(fig_corr, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+    with col0_2:
+        fig_vif = load_plotly("plot_panel_vif.json")
+        if fig_vif:
+            st.markdown('<div class="card"><div class="card-label">Variance Inflation Factor (VIF)</div>', unsafe_allow_html=True)
+            st.plotly_chart(fig_vif, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+
     # Section 2: Model Estimation & Effects
     st.markdown("""
     <div class="section-header">

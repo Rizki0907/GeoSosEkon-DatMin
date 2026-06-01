@@ -6,13 +6,17 @@ from pathlib import Path
 def show():
     # Page Hero
     st.markdown("""
-    <div class="hero-container">
-        <div class="hero-subtitle">LAYER 3 ANALYSIS</div>
-        <div class="hero-title">Spatial Autocorrelation</div>
-        <div class="hero-desc">
+    <div class="hero-section">
+        <div class="hero-bg-grid"></div>
+        <div class="hero-glow"></div>
+        <div class="hero-eyebrow">Layer 3 Analysis</div>
+        <h1 class="hero-title">
+            Spatial <span class="grad">Autocorrelation</span>
+        </h1>
+        <p class="hero-sub">
             Spatial autocorrelation metrics analyze geographical clustering of poverty in Indonesia. 
             This identifies hot-spots (High-High) and cold-spots (Low-Low) using spatial weight connectivity and Local Indicators of Spatial Association (LISA).
-        </div>
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -30,7 +34,7 @@ def show():
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color='#E2E8F0', family='Inter'),
-                title=dict(font=dict(color='#06B6D4', family='Outfit', size=16)),
+                title=dict(font=dict(color='#00D4FF', family='Outfit', size=16)),
                 legend=dict(font=dict(color='#94A3B8')),
                 margin=dict(l=40, r=40, t=50, b=40)
             )
@@ -42,25 +46,31 @@ def show():
                     fig.layout[ax_name].linecolor = 'rgba(255, 255, 255, 0.1)'
                     fig.layout[ax_name].zerolinecolor = 'rgba(255, 255, 255, 0.1)'
                     
-            # Colorbar / colorscale customizations if needed (e.g. for choropleths or heatmaps)
+            # Colorbar / colorscale customizations
             if hasattr(fig, 'data'):
                 for trace in fig.data:
                     if 'colorbar' in trace:
                         trace.colorbar.tickfont = dict(color='#E2E8F0', family='Inter')
-                        trace.colorbar.title.font = dict(color='#06B6D4', family='Outfit')
+                        trace.colorbar.title.font = dict(color='#00D4FF', family='Outfit')
             
             return fig
         except Exception as e:
             st.error(f"Error loading {filename}: {e}")
             return None
 
+    fig_pov = load_plotly("plot_poverty_distribution.json")
+    if fig_pov:
+        st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>Poverty Distribution Map</h3>", unsafe_allow_html=True)
+        st.plotly_chart(fig_pov, use_container_width=True)
+        st.markdown("<hr>", unsafe_allow_html=True)
+
     fig_conn = load_plotly("plot_spatial_connectivity.json")
     if fig_conn:
-        st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC;'>Spatial Connectivity Map (KNN=5)</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>Spatial Connectivity Map (KNN=5)</h3>", unsafe_allow_html=True)
         st.plotly_chart(fig_conn, use_container_width=True)
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC;'>Global Moran's I Analysis</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>Global Moran's I Analysis</h3>", unsafe_allow_html=True)
 
     col1, col2 = st.columns(2)
     with col1:
@@ -73,15 +83,23 @@ def show():
             st.plotly_chart(fig_scatter, use_container_width=True)
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC;'>Local Indicators of Spatial Association (LISA)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>Local Indicators of Spatial Association (LISA)</h3>", unsafe_allow_html=True)
 
     fig_lisa_map = load_plotly("plot_lisa_map.json")
-    if fig_lisa_map:
+    fig_lisa_dist = load_plotly("plot_lisa_distribution.json")
+    
+    if fig_lisa_map and not fig_lisa_dist:
         st.plotly_chart(fig_lisa_map, use_container_width=True)
+    elif fig_lisa_map and fig_lisa_dist:
+        col_lisa1, col_lisa2 = st.columns(2)
+        with col_lisa1:
+            st.plotly_chart(fig_lisa_map, use_container_width=True)
+        with col_lisa2:
+            st.plotly_chart(fig_lisa_dist, use_container_width=True)
 
     try:
         df_lisa = pd.read_csv(SPATIAL_OUTPUT / "output_lisa_results.csv")
-        st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC; margin-top: 1.5rem; margin-bottom: 1rem;'>LISA Cluster Results</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; margin-top: 1.5rem; margin-bottom: 1rem; font-size:1.15rem;'>LISA Cluster Results</h3>", unsafe_allow_html=True)
         st.dataframe(df_lisa, use_container_width=True)
     except Exception:
         pass

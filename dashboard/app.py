@@ -2,15 +2,13 @@ import streamlit as st
 from pathlib import Path
 import sys
 import importlib
+import traceback
+import re
 
 # Ensure dashboard path is in sys.path
 BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.append(str(BASE_DIR))
-
-
-
-
 
 # 1. Page Configuration (Must be first Streamlit command)
 st.set_page_config(
@@ -20,9 +18,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-import traceback
-
-# 2. Dynamic Import of Sub-modules (handles numerical filenames cleanly)
+# 2. Dynamic Import of Sub-modules
 try:
     Home = importlib.import_module("pages.Home")
     Clustering = importlib.import_module("pages.0_Clustering")
@@ -36,66 +32,84 @@ except Exception as e:
     st.text(traceback.format_exc())
     st.stop()
 
-# 3. Load CSS Stylesheet
-def load_css(file_name):
+# 3. Load CSS Stylesheet & CDNs (Fonts + FontAwesome)
+def load_and_inject_assets():
     try:
-        with open(BASE_DIR / file_name) as f:
-            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+        with open(BASE_DIR / "style.css") as f:
+            css_content = f.read()
+        
+        # Minify CSS slightly (replace multiple linebreaks)
+        clean_css = re.sub(r'\n{2,}', '\n', css_content.strip())
+        
+        # Inject Google Fonts + FontAwesome + CSS
+        st.markdown(
+            '<link rel="preconnect" href="https://fonts.googleapis.com">'
+            '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+            '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">'
+            '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">'
+            f'<style>{clean_css}</style>',
+            unsafe_allow_html=True
+        )
     except FileNotFoundError:
         pass
 
+load_and_inject_assets()
 
+# 4. Navigation Configurations
+NAV_ITEMS = {
+    "Overview": "fa-chart-pie",
+    "Typology": "fa-circle-nodes",
+    "Spatial": "fa-earth-asia",
+    "Forecasting": "fa-chart-line",
+    "Causality": "fa-link",
+    "Sentiment": "fa-comments",
+    "Report": "fa-file-pdf"
+}
 
-load_css('style.css')
+PAGE_SLUGS = {
+    "Overview": "overview",
+    "Typology": "typology",
+    "Spatial": "spatial",
+    "Forecasting": "forecasting",
+    "Causality": "causality",
+    "Sentiment": "sentiment",
+    "Report": "report"
+}
+SLUG_TO_PAGE = {v: k for k, v in PAGE_SLUGS.items()}
 
-# 4. Routing via Query Parameters
-query_params = st.query_params
-active_page = query_params.get("page", "overview")
+# 5. Routing via Query Parameters (using target="_top" for iframe escapes)
+slug = st.query_params.get("page", "overview")
+if isinstance(slug, list):
+    slug = slug[0] if slug else "overview"
+page = SLUG_TO_PAGE.get(str(slug).lower(), "Overview")
 
-# Define active CSS highlights
-active_overview = "active" if active_page == "overview" else ""
-active_typology = "active" if active_page == "typology" else ""
-active_spatial = "active" if active_page == "spatial" else ""
-active_forecasting = "active" if active_page == "forecasting" else ""
-active_causality = "active" if active_page == "causality" else ""
-active_sentiment = "active" if active_page == "sentiment" else ""
-active_report = "active" if active_page == "report" else ""
+# Render Sticky Navigation Bar
+nav_html = '<div class="nav-wrapper"><div class="nav-logo"><div class="nav-dot"></div><span>GEO</span>SOSEKON</div><div class="nav-links">'
+for item, icon in NAV_ITEMS.items():
+    is_active = page == item
+    active_cls = ' class="active"' if is_active else ''
+    nav_html += f'<a href="?page={PAGE_SLUGS[item]}" target="_top"{active_cls}><i class="fa-solid {icon}" style="font-size:0.8rem;"></i> {item}</a>'
+nav_html += '</div><div class="nav-team">DatMin Project &bull; 2026</div></div>'
+st.markdown(nav_html, unsafe_allow_html=True)
 
-# 5. Render Premium Top Navigation Bar
-st.markdown(f"""
-<div class="nav-container">
-    <div class="nav-logo-section">
-        <span class="nav-logo-text">GEOSOSEKON</span>
-    </div>
-    <div class="nav-menu-items">
-        <a href="?page=overview" class="nav-item {active_overview}" target="_self">Overview</a>
-        <a href="?page=typology" class="nav-item {active_typology}" target="_self">Typology</a>
-        <a href="?page=spatial" class="nav-item {active_spatial}" target="_self">Spatial</a>
-        <a href="?page=forecasting" class="nav-item {active_forecasting}" target="_self">Forecasting</a>
-        <a href="?page=causality" class="nav-item {active_causality}" target="_self">Causality</a>
-        <a href="?page=sentiment" class="nav-item {active_sentiment}" target="_self">Sentiment</a>
-        <a href="?page=report" class="nav-item {active_report}" target="_self">Report</a>
-    </div>
-    <div class="nav-meta-info">
-        Final Project 2026
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# 6. Render the Active View Component (with page wrapper margin)
+st.markdown('<div class="page-wrapper">', unsafe_allow_html=True)
 
-# 6. Render the Active View Component
-if active_page == "overview":
+if page == "Overview":
     Home.show()
-elif active_page == "typology":
+elif page == "Typology":
     Clustering.show()
-elif active_page == "spatial":
+elif page == "Spatial":
     Spatial_Analysis.show()
-elif active_page == "forecasting":
+elif page == "Forecasting":
     Forecasting.show()
-elif active_page == "causality":
+elif page == "Causality":
     Causality_and_SHAP.show()
-elif active_page == "sentiment":
+elif page == "Sentiment":
     Sentiment_Analysis.show()
-elif active_page == "report":
+elif page == "Report":
     Report_Generator.show()
 else:
     Home.show()
+
+st.markdown('</div>', unsafe_allow_html=True)

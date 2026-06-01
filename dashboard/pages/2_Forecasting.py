@@ -8,13 +8,17 @@ import numpy as np
 def show():
     # Page Hero
     st.markdown("""
-    <div class="hero-container">
-        <div class="hero-subtitle">LAYER 2 ANALYSIS</div>
-        <div class="hero-title">Projections & Predictions (XGBoost & SHAP)</div>
-        <div class="hero-desc">
+    <div class="hero-section">
+        <div class="hero-bg-grid"></div>
+        <div class="hero-glow"></div>
+        <div class="hero-eyebrow">Layer 2 Analysis</div>
+        <h1 class="hero-title">
+            Projections & <span class="grad">Predictions</span>
+        </h1>
+        <p class="hero-sub">
             Poverty rate forecasting for the years 2025-2026. This layer features spaghetti trend projections, 
             SHAP model interpretability plots, and an interactive machine learning predictor to simulate policy impact.
-        </div>
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -32,7 +36,7 @@ def show():
                 paper_bgcolor='rgba(0,0,0,0)',
                 plot_bgcolor='rgba(0,0,0,0)',
                 font=dict(color='#E2E8F0', family='Inter'),
-                title=dict(font=dict(color='#06B6D4', family='Outfit', size=16)),
+                title=dict(font=dict(color='#00D4FF', family='Outfit', size=16)),
                 legend=dict(font=dict(color='#94A3B8')),
                 margin=dict(l=40, r=40, t=50, b=40)
             )
@@ -51,24 +55,24 @@ def show():
 
     fig_spag = load_plotly("plot_forecast_spaghetti.json")
     if fig_spag:
-        st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC;'>Provincial Poverty Projection (2025-2026)</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>Provincial Poverty Projection (2025-2026)</h3>", unsafe_allow_html=True)
         st.plotly_chart(fig_spag, use_container_width=True)
 
     col1, col2 = st.columns(2)
     with col1:
         fig_avg = load_plotly("plot_forecast_average_trend.json")
         if fig_avg:
-            st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC;'>National Average Trend</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>National Average Trend</h3>", unsafe_allow_html=True)
             st.plotly_chart(fig_avg, use_container_width=True)
             
     with col2:
         fig_comb = load_plotly("plot_forecast_combined_trend.json")
         if fig_comb:
-            st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC;'>Combined Trend Overview</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>Combined Trend Overview</h3>", unsafe_allow_html=True)
             st.plotly_chart(fig_comb, use_container_width=True)
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC;'>SHAP Model Interpretability (by Cluster)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>SHAP Model Interpretability (by Cluster)</h3>", unsafe_allow_html=True)
 
     fig_shap_0 = load_plotly("plot_shap_forecast_cluster_0.json")
     fig_shap_1 = load_plotly("plot_shap_forecast_cluster_1.json")
@@ -83,8 +87,23 @@ def show():
                 st.plotly_chart(fig_shap_1, use_container_width=True)
 
     st.markdown("<hr>", unsafe_allow_html=True)
-    st.markdown("<h3 style='font-family: \"Outfit\"; color: #F8FAFC;'>Interactive Poverty Predictor</h3>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #94A3B8;'>Simulate the impact of changing socio-economic indicators on the projected poverty rate using our trained Ensemble Model (XGBoost, LightGBM, Random Forest).</p>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>Global SHAP Importance</h3>", unsafe_allow_html=True)
+
+    fig_shap_imp = load_plotly("plot_shap_forecast_importance.json")
+    fig_shap_bar = load_plotly("plot_shap_summary_bar.json")
+    
+    if fig_shap_imp or fig_shap_bar:
+        scol3, scol4 = st.columns(2)
+        with scol3:
+            if fig_shap_imp:
+                st.plotly_chart(fig_shap_imp, use_container_width=True)
+        with scol4:
+            if fig_shap_bar:
+                st.plotly_chart(fig_shap_bar, use_container_width=True)
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown("<h3 style='font-family: \"Plus Jakarta Sans\"; color: #F8FAFC; font-size:1.15rem; margin-bottom:12px;'>Interactive Poverty Predictor</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #94A3B8; font-size: 0.9rem;'>Simulate the impact of changing socio-economic indicators on the projected poverty rate using our trained Ensemble Model (XGBoost, LightGBM, Random Forest).</p>", unsafe_allow_html=True)
 
     model_path = FORECAST_OUTPUT / "forecasting_models.joblib"
     if model_path.exists():
@@ -120,7 +139,7 @@ def show():
                     
                     st.markdown(f"""
                     <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center;">
-                        <h4 style="margin: 0 0 5px 0; color: #10B981; font-family: 'Outfit';">Simulation Result</h4>
+                        <h4 style="margin: 0 0 5px 0; color: #10B981; font-family: 'Plus Jakarta Sans'; font-size:1rem; font-weight:700;">Simulation Result</h4>
                         <p style="margin: 0; font-size: 1.15rem; color: #E2E8F0;">
                             Predicted Poverty Rate: <strong>{final_pred:.2f}%</strong>
                         </p>

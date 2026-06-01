@@ -84,16 +84,26 @@ def show():
     col1, col2 = st.columns(2)
     with col1:
         fig_month = load_plotly("plot_sentiment_per_month.json")
+        fig_year = load_plotly("plot_sentiment_per_year.json")
         if fig_month:
             st.markdown('<div class="card"><div class="card-label">Sentiment Trends over Time (Monthly)</div>', unsafe_allow_html=True)
             st.plotly_chart(fig_month, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
+        if fig_year:
+            st.markdown('<div class="card"><div class="card-label">Sentiment Trends over Time (Yearly)</div>', unsafe_allow_html=True)
+            st.plotly_chart(fig_year, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
 
     with col2:
         fig_word = load_plotly("plot_tweet_wordfreq.json")
+        fig_eda = load_plotly("plot_tweet_eda.json")
         if fig_word:
             st.markdown('<div class="card"><div class="card-label">High-Frequency Discussion Words</div>', unsafe_allow_html=True)
             st.plotly_chart(fig_word, use_container_width=True)
+            st.markdown("</div>", unsafe_allow_html=True)
+        if fig_eda:
+            st.markdown('<div class="card"><div class="card-label">Exploratory Data Analysis (EDA)</div>', unsafe_allow_html=True)
+            st.plotly_chart(fig_eda, use_container_width=True)
             st.markdown("</div>", unsafe_allow_html=True)
 
     # Section 3: Intensity & Wordcloud
@@ -114,6 +124,12 @@ def show():
     if wordcloud_path.exists():
         st.markdown('<div class="card"><div class="card-label">Discussion Wordcloud Representation</div>', unsafe_allow_html=True)
         st.image(str(wordcloud_path), use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    engagement_path = SENTIMENT_OUTPUT / "plot_sentiment_engagement.png"
+    if engagement_path.exists():
+        st.markdown('<div class="card"><div class="card-label">Sentiment Engagement Distribution</div>', unsafe_allow_html=True)
+        st.image(str(engagement_path), use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
     # Section 4: Raw Dataset View
