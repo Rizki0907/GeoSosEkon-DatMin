@@ -152,3 +152,11 @@ def show():
                         st.write(f"LightGBM Prediction: {lgb_pred:.2f}% (Weight: {ew['lgb']:.2f})")
     else:
         st.info("Forecasting model file not found. Ensure `forecasting_models.joblib` exists in the output directory.")
+
+
+    beeswarm_path = FORECAST_OUTPUT / "plot_shap_summary_beeswarm.png"
+    if beeswarm_path.exists():
+        st.markdown('<div class="card"><div class="card-label">SHAP Summary Beeswarm</div>', unsafe_allow_html=True)
+        st.image(str(beeswarm_path), use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+

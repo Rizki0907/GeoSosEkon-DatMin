@@ -147,3 +147,11 @@ def show():
     except Exception as e:
         st.error(f"Could not load raw dataset: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
+
+
+    probdist_path = SENTIMENT_OUTPUT / "plot_sentiment_probdist.png"
+    if probdist_path.exists():
+        st.markdown('<div class="card"><div class="card-label">Sentiment Probability Distribution</div>', unsafe_allow_html=True)
+        st.image(str(probdist_path), use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+

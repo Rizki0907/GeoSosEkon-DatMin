@@ -103,3 +103,11 @@ def show():
         st.dataframe(df_clusters, use_container_width=True)
     except Exception:
         pass
+
+
+    boxplot_path = CLUSTER_OUTPUT / "plot_feature_boxplot.png"
+    if boxplot_path.exists():
+        st.markdown('<div class="card"><div class="card-label">Feature Distribution Boxplot</div>', unsafe_allow_html=True)
+        st.image(str(boxplot_path), use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+

@@ -103,3 +103,11 @@ def show():
         st.dataframe(df_lisa, use_container_width=True)
     except Exception:
         pass
+
+
+    consistency_path = SPATIAL_OUTPUT / "plot_lisa_consistency.png"
+    if consistency_path.exists():
+        st.markdown('<div class="card"><div class="card-label">LISA Consistency Distribution</div>', unsafe_allow_html=True)
+        st.image(str(consistency_path), use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
