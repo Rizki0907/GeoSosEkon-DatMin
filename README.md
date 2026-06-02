@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🌍 GeoSosEkon: Multimodal Spatial-Temporal Analytics System</h1>
+  <h1>GeoSosEkon: Multimodal Spatial-Temporal Analytics System</h1>
   <h3>Provincial Poverty Dynamics in Indonesia (2021-2026)</h3>
 
   [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://geososekon-datmin-gp5uqesskmm5dnqhaxfn2b.streamlit.app/)
@@ -16,19 +16,19 @@ By integrating quantitative socio-economic data from **Badan Pusat Statistik (BP
 
 ---
 
-## 👥 Team Members
-- 👨‍💻 **Rizki Piji Fathoni** (24031554029)
-- 👨‍💻 **Muhammad Rafi Fahrezi** (24031554100)
-- 👨‍💻 **Nazril Ravi Pratama** (2403155129)
+## Team Members
+- **Rizki Piji Fathoni** (24031554029)
+- **Muhammad Rafi Fahrezi** (24031554100)
+- **Nazril Ravi Pratama** (2403155129)
 
 ---
 
-## 🚀 Live Dashboard
+## Live Dashboard
 The final interactive dashboard is deployed on Streamlit Community Cloud and can be accessed anywhere:
 
-🔗 **[Launch GeoSosEkon Dashboard](https://geososekon-datmin-gp5uqesskmm5dnqhaxfn2b.streamlit.app/)**
+**[Launch GeoSosEkon Dashboard](https://geososekon-datmin-gp5uqesskmm5dnqhaxfn2b.streamlit.app/)**
 
-### 🌟 Dashboard Features
+### Dashboard Features
 - **Modern UI/UX**: Built with a sleek Glassmorphism aesthetic, responsive design, and intuitive native sidebar navigation.
 - **Interactive Visualizations**: Powered by Plotly to allow zooming, panning, and hovering over complex spatial maps, 3D PCA projections, and sentiment heatmaps.
 - **Live Poverty Predictor**: An interactive form that lets you tweak socio-economic variables (HDI, TPT, TPAK, etc.) and predicts the poverty rate instantly using our trained Ensemble model (XGBoost, LightGBM, Random Forest).
@@ -36,7 +36,7 @@ The final interactive dashboard is deployed on Streamlit Community Cloud and can
 
 ---
 
-## 🏗️ Project Architecture (The 5 Layers)
+## Project Architecture (The 5 Layers)
 
 The analytical engine behind the dashboard is structured into five distinct Jupyter Notebooks, ensuring a modular and reproducible pipeline:
 
@@ -57,7 +57,7 @@ The analytical engine behind the dashboard is structured into five distinct Jupy
 
 ---
 
-## 🛠️ Local Installation & Usage
+## Local Installation & Usage
 
 To run the interactive dashboard locally on your own machine:
 
