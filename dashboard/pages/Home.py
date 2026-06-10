@@ -124,7 +124,7 @@ def show():
             <div class="team-id">24031554029</div>
         </div>
         <div class="team-card">
-            <div class="team-avatar">AJ</div>
+            <div class="team-avatar">MR</div>
             <div class="team-name">Muhammad Rafi Fahrezi</div>
             <div class="team-id">24031554100</div>
         </div>
