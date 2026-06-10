@@ -20,6 +20,16 @@ def show():
     </div>
     """, unsafe_allow_html=True)
 
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric(label="Dominant Sentiment", value="Neutral", delta="65.5% Average")
+    with c2:
+        st.metric(label="Negative Trend (2026)", value="45.0%", delta="Growing Negativity", delta_color="inverse")
+    with c3:
+        st.metric(label="NLP Engine", value="IndoRoBERTa", delta="Contextual Understanding")
+    
+    st.markdown("---")
+
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     SENTIMENT_OUTPUT = BASE_DIR / "LAYER 5 - ROBERTA SENTIMENT" / "sentiment_output"
 

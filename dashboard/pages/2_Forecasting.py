@@ -22,6 +22,16 @@ def show():
     </div>
     """, unsafe_allow_html=True)
 
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric(label="Ensemble MAPE", value="4.57%", delta="High Accuracy")
+    with c2:
+        st.metric(label="Top Poverty Reducer", value="HDI", delta="Highest Negative SHAP")
+    with c3:
+        st.metric(label="Top Poverty Driver", value="Unemployment", delta="Highest Positive SHAP", delta_color="inverse")
+    
+    st.markdown("---")
+
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     FORECAST_OUTPUT = BASE_DIR / "LAYER 2 - FORECAST + SHAP" / "forecast_output"
 

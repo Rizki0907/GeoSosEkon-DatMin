@@ -20,6 +20,16 @@ def show():
     </div>
     """, unsafe_allow_html=True)
 
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric(label="Global Moran's I", value="> 0.57", delta="Significant Clustering")
+    with c2:
+        st.metric(label="Primary Hotspot", value="Papua", delta="High-High Trap", delta_color="inverse")
+    with c3:
+        st.metric(label="Primary Coldspot", value="Java & Bali", delta="Low-Low Wealth")
+    
+    st.markdown("---")
+
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     SPATIAL_OUTPUT = BASE_DIR / "LAYER 3 - SPATIAL AUTOKORELASI (MORANS I + LISA MAP)" / "spatial_output"
 

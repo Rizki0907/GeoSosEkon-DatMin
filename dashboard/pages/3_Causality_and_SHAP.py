@@ -19,6 +19,16 @@ def show():
     </div>
     """, unsafe_allow_html=True)
 
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric(label="Causal Driver", value="Schooling", delta="Coeff: -1.225")
+    with c2:
+        st.metric(label="P-Value", value="0.000", delta="Statistically Significant")
+    with c3:
+        st.metric(label="Unobserved Heterogeneity", value="Controlled", delta="Eastern Base > Java")
+    
+    st.markdown("---")
+
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     PANEL_OUTPUT = BASE_DIR / "LAYER 4 - FIXED EFFECT PANEL REGRESSION" / "panel_output"
 

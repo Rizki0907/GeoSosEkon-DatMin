@@ -20,6 +20,16 @@ def show():
     </div>
     """, unsafe_allow_html=True)
 
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric(label="Optimal Clusters", value="2", delta="UMAP + GMM")
+    with c2:
+        st.metric(label="Silhouette Score", value="0.822", delta="High Cohesion")
+    with c3:
+        st.metric(label="Target Area", value="Cluster 1", delta="Eastern Indonesia", delta_color="inverse")
+    
+    st.markdown("---")
+
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
     CLUSTER_OUTPUT = BASE_DIR / "LAYER 1 - CLUSTERING" / "cluster_output"
 
